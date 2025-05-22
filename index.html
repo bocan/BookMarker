@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chris Funderburg's BookMarker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #020409;
+    }
+    .header {
+      color: #F1F6FC;
+      text-decoration: none;
+    }
+    h1 {
+      color: #F1F6FC;
+    }
+    h1 a {
+      color: #F1F6FC;
+priority: 1;
+    }
+    h2 {
+      text-decoration: underline;
+    }
+    .meat {
+      background-color: #0E1117;
+     color: #FBFBFE;
+    }
+    .blah {
+      color: #9398A0;
+      padding-left: 40px;
+    }
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    li {
+      margin-bottom: 10px;
+    }
+    a {
+     //color: #FBFBFE;
+     color: #5992F1;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+     color: #5992F1;
+    }
+    .description {
+      padding-left: 40px;
+      width: 40%;
+      color: #9398A0;
+      background-color: #161B22;
+      border-radius: 10px;
+    }
+    select {
+        padding: 5px;
+        margin-right: 10px;
+    }
+
+    .header-controls {
+        display: flex; /* Enable Flexbox for this container */
+        justify-content: space-between; /* Pushes children to opposite ends */
+        align-items: center; /* Vertically centers items */
+        margin-bottom: 15px; /* Add some space below this section */
+    }
+
+    .filter-group {
+        display: flex; /* Flexbox for the right-aligned filter group */
+        gap: 15px; /* Space between the filter dropdowns */
+    }
+
+    /* Existing styles for select elements */
+    select {
+        padding: 5px;
+    }
+
+</style>
+<script src="metadata.js"></script>
+<script>
+  // Assuming 'bookmarks' is defined in metadata.js
+  // (Your existing code for allTags, uniqueTags, allPublicationYears, uniqueYears, etc. goes here)
+
+  const allTags = bookmarks.flatMap(bookmark => bookmark.tags ?? []);
+  const uniqueTags = [...new Set(allTags)];
+  uniqueTags.sort((a, b) => a.localeCompare(b));
+
+  const allPublicationYears = bookmarks.map(bookmark => bookmark.publicationYear);
+  const uniqueYears = [...new Set(allPublicationYears)];
+  uniqueYears.sort((a, b) => b.localeCompare(a)); // Descending sort for years
+
+  const bookmarkFilters = [
+    {
+      id: 'tag',
+      label: 'tagged with',
+      filterFn: (bookmark, tagName) => bookmark.tags?.includes(tagName), // Use optional chaining for tags
+    },
+    {
+      id: 'publicationYear',
+      label: 'published in',
+      filterFn: (bookmark, year) => bookmark.publicationYear === year,
+    },
+  ];
+
+  const bookmarkSortOptions = [
+    {
+      id: 'titleAtoZ',
+      label: 'title (A to Z)',
+      compareFn: (a, b) => a.title.localeCompare(b.title), // Use localeCompare for consistent string comparison
+    },
+    {
+      id: 'publicationYear',
+      label: 'publication year (newest first)',
+      compareFn: (a, b) => Number(b.publicationYear) - Number(a.publicationYear),
+    },
+  ];
+
+  /*
+   * Filter a list of items.
+   *
+   * This function takes the list of items and available filters, and the
+   * URL query parameters passed to the page.
+   *
+   * This function returns a list with the items that match these filters,
+   * and a list of filters that have been applied.
+   */
+  function filterItems({ items, filters, params }) {
+
+    // By default, all items match, and no filters are applied.
+    var matchingItems = items;
+    var appliedFilters = [];
+
+    // Go through the URL query params one by one, and look to
+    // see if there's a matching filter.
+    for (const [key, value] of params) {
+      console.debug(`Checking query parameter ${key}`);
+      const matchingFilter = filters.find(f => f.id === key);
+
+      if (typeof matchingFilter === 'undefined') {
+        continue;
+      }
+
+      // There's a matching filter!  Go ahead and filter the
+      // list of items to only those that match.
+      console.debug(`Detected filter ${JSON.stringify(matchingFilter)}`);
+
+      matchingItems = matchingItems.filter(
+        item => matchingFilter.filterFn(item, value)
+      );
+
+      // Construct a new query string that doesn't include
+      // this filter.
+      const altQuery = new URLSearchParams(params);
+      altQuery.delete(key, value);
+      // Ensure page number is reset if a filter changes
+      if (key !== 'pageNumber' && key !== 'sortOrder') {
+         altQuery.delete('pageNumber');
+      }
+      const linkToRemove = "?" + altQuery.toString();
+
+      appliedFilters.push({
+        type: matchingFilter.id,
+        label: matchingFilter.label,
+        value,
+        linkToRemove,
+      })
+    }
+
+    return { matchingItems, appliedFilters };
+  }
+
+  /*
+   * Sort a list of items.
+   *
+   * This function takes the list of items and available options, and the
+   * URL query parameters passed to the page.
+   *
+   * It returns a list with the items in sorted order, and the
+   * sort order that was applied.
+   */
+  function sortItems({ items, sortOptions, params }) {
+
+    // Did the user pass a sort order in the query parameters?
+    const sortOrderId = getSortOrder(params);
+
+    // What sort order are we using?
+    //
+    // Look for a matching sort option, or use the default if the sort
+    // order is null/unrecognised. For now, use the first defined
+    // sort order as the default.
+    const defaultSort = sortOptions[0];
+    const selectedSort =
+      sortOptions.find(s => s.id === sortOrderId) || defaultSort;
+
+    console.debug(`Selected sort: ${JSON.stringify(selectedSort)}`);
+
+    // Create a shallow copy to avoid mutating the original array passed to `items`
+    const sortedItems = [...items].sort(selectedSort.compareFn);
+
+    return { sortedItems, appliedSortOrder: selectedSort };
+  }
+
+  /*
+   * Get a page of items.
+   *
+   * This function will reduce the list of items to the items that should
+   * be shown on this particular page.
+   */
+  function paginateItems({ items, pageNumber, pageSize }) {
+
+    // Page numbers are 1-indexed, so page 1 corresponds to
+    // the indices 0…(pageSize - 1).
+    const startOfPage = (pageNumber - 1) * pageSize;
+    const endOfPage = pageNumber * pageSize;
+    const thisPage = items.slice(startOfPage, endOfPage);
+
+    return {
+      thisPage,
+      totalItems: items.length, // Add totalItems for calculation elsewhere if needed
+      totalPages: Math.ceil(items.length / pageSize),
+    };
+  }
+
+  /*
+   * Renders a list of pagination controls.
+   *
+   * This includes links to prev/next pages and the current page number.
+   */
+  function PaginationControls({ pageNumber, totalPages, params }) {
+
+    // If there are no pages, we don't need pagination controls.
+    if (totalPages <= 1) { // Changed to <= 1 to handle cases where there are items but only one page
+      return "";
+    }
+
+    let prevPageLink = '';
+    let nextPageLink = '';
+
+    // Do we need a link to the previous page? Only if we're past page 1.
+    if (pageNumber > 1) {
+      const prevPageUrl = setPageNumber({ params, pageNumber: pageNumber - 1 });
+      prevPageLink = `<a href="${prevPageUrl}">&larr; prev</a>`;
+    }
+
+    // Do we need a link to the next page? Only if we're before
+    // the last page.
+    if (pageNumber < totalPages) {
+      const nextPageUrl = setPageNumber({ params, pageNumber: pageNumber + 1 });
+      nextPageLink = `<a href="${nextPageUrl}">next &rarr;</a>`;
+    }
+
+    const pageText = `Page ${pageNumber} of ${totalPages}`;
+
+    // Construct the final result.
+    return [prevPageLink, pageText, nextPageLink]
+      .filter(p => p !== '') // Filter out empty strings, not null
+      .join(" / ");
+  }
+
+  /* Returns a URL that points to the new page number. */
+  function setPageNumber({ params, pageNumber }) {
+    const updatedParams = new URLSearchParams(params);
+    updatedParams.set("pageNumber", pageNumber);
+    return `?${updatedParams.toString()}`;
+  }
+
+  /* Get the current page number. */
+  function getPageNumber(params) {
+    return Number(params.get("pageNumber")) || 1;
+  }
+
+  /* Get the current sort order from the URL query parameters. */
+  function getSortOrder(params) {
+    return params.get("sortOrder");
+  }
+
+  function Bookmark(bookmark) {
+    const tagBaseUrl = "file:///Users/chris/bookmarks/index.html?tag=";
+    const tagLinks = (bookmark.tags ?? []) // Ensure tags is an array
+      .map(tag => {
+        const encodedTag = encodeURIComponent(tag);
+        return `<a href="${tagBaseUrl}${encodedTag}">#${tag}</a>`;
+      })
+      .join(", ");
+
+    // Conditionally include the description paragraph
+    const descriptionParagraph = bookmark.description
+      ? `<p class="description">${bookmark.description}</p>`
+      : ''; // If bookmark.description is falsy (undefined, null, empty string), render nothing
+
+    // Conditionally include the "Tags" paragraph only if there are tags
+    const tagsParagraph = tagLinks ? `${tagLinks}` : '';
+
+    return `
+      <li>
+        <a href="${bookmark.url}" target="_blank">${bookmark.title} (${bookmark.publicationYear})</a> (${tagsParagraph}) <br/>
+        ${descriptionParagraph}
+      </li>
+    `;
+  }
+
+  /*
+   * Create a dropdown control to choose the sort order. When you pick
+   * a different value, the page reloads with the new sort.
+   */
+  function SortOrderDropdown({ sortOptions, appliedSortOrder }) {
+    return `
+      <select onchange="setSortOrder(this.value)">
+        ${
+          sortOptions
+            .map(({ id, label }) => `
+              <option value="${id}" ${id === appliedSortOrder.id ? 'selected' : ''}>
+                ${label}
+              </option>
+            `)
+            .join("")
+        }
+      </select>
+    `;
+  }
+
+  function setSortOrder(sortOrderId) {
+    const params = new URLSearchParams(window.location.search);
+    params.set("sortOrder", sortOrderId);
+    params.delete("pageNumber"); // Reset page when sort order changes
+    window.location.search = params.toString();
+  }
+
+  // --- NEW FUNCTIONS FOR FILTER DROPDOWNS ---
+  function FilterDropdown({ id, label, options, currentFilterValue, params }) {
+    return `
+      <label for="${id}-filter">${label}:</label>
+      <select id="${id}-filter" onchange="setFilter('${id}', this.value)">
+        <option value="">All</option> ${options.map(optionValue => `
+          <option value="${optionValue}" ${optionValue === currentFilterValue ? 'selected' : ''}>
+            ${optionValue}
+          </option>
+        `).join("")}
+      </select>
+    `;
+  }
+
+  function setFilter(filterId, filterValue) {
+    const params = new URLSearchParams(window.location.search);
+    if (filterValue) { // If a value is selected (not "All")
+      params.set(filterId, filterValue);
+    } else { // If "All" is selected, remove the filter from the URL
+      params.delete(filterId);
+    }
+    params.delete("pageNumber"); // Reset page when filter changes
+    window.location.search = params.toString();
+  }
+  // --- END NEW FUNCTIONS ---
+
+  window.addEventListener("DOMContentLoaded", () => {
+    const params = new URLSearchParams(window.location.search);
+
+    const { matchingItems: matchingBookmarks, appliedFilters } =
+      filterItems({
+        items: bookmarks,
+        filters: bookmarkFilters,
+        params,
+      });
+
+    document.querySelector("#appliedFilters").innerHTML =
+      appliedFilters
+        .map(f => `<li>${f.label}: ${f.value} <a href="${f.linkToRemove}">(remove)</a></li>`)
+        .join("");
+
+    const { sortedItems: sortedBookmarks, appliedSortOrder } =
+      sortItems({
+        items: matchingBookmarks,
+        sortOptions: bookmarkSortOptions,
+        params,
+      });
+
+    document.querySelector("#sortOrder").innerHTML +=
+      SortOrderDropdown({ sortOptions: bookmarkSortOptions, appliedSortOrder });
+
+    const pageNumber = getPageNumber(params);
+
+    const { thisPage: thisPageOfBookmarks, totalPages } =
+      paginateItems({
+        items: sortedBookmarks,
+        pageNumber,
+        pageSize: 9,
+      });
+
+    document.querySelector("#paginationControls").innerHTML +=
+      " " + PaginationControls({ pageNumber, totalPages, params });
+
+    document.querySelector("#listOfBookmarks").innerHTML =
+      thisPageOfBookmarks.map(Bookmark).join("<br/>");
+
+    // --- RENDER FILTER DROPDOWNS ---
+    const currentTagFilter = params.get('tag');
+    document.querySelector("#tagFilterDropdown").innerHTML =
+        FilterDropdown({
+            id: 'tag',
+            label: 'Filter by tag',
+            options: uniqueTags,
+            currentFilterValue: currentTagFilter,
+            params: params
+        });
+
+    const currentYearFilter = params.get('publicationYear');
+    document.querySelector("#yearFilterDropdown").innerHTML =
+        FilterDropdown({
+            id: 'publicationYear',
+            label: 'Filter by year',
+            options: uniqueYears,
+            currentFilterValue: currentYearFilter,
+            params: params
+        });
+    // --- END RENDER FILTER DROPDOWNS ---
+  });
+</script>
+</head>
+
+<body>
+<div class="header">
+<h1><a href="file:///Users/chris/bookmarks/index.html">BookMarker</a></h1>
+
+  <div class="header-controls">
+    <p id="sortOrder">Sort by:</p> <div class="filter-group">
+      <p id="tagFilterDropdown"></p>   <p id="yearFilterDropdown"></p>  </div>
+  </div>
+
+<p>Applied filters:</p>
+<ul id="appliedFilters" class=blah></ul>
+
+<div id="paginationControls">&nbsp;</div>
+</div>
+<div class="meat">
+<h2>The List:</h2>
+<ul id="listOfBookmarks"></ul>
+
+</div>
+</body>
+</html>
