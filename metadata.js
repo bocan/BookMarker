@@ -95,6 +95,13 @@ const bookmarks = [
     "tags": ["weather", "lightning", "maps"],
     "publicationYear": "2025"
   },
+  {
+    "url": "https://www.aeinstein.org/198-methods-of-nonviolent-action",
+    "title": "Methods of Nonviolent Action",
+    "description": "A list of 198 methods of nonviolent action compiled by Gene Sharp. It includes various forms of protest, noncooperation, and intervention.",
+    "tags": ["nonviolence", "protest", "activism"],
+    "publicationYear": "2025"
+  },
  // {
  //   "url": "",
  //   "title": "",
