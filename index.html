@@ -293,9 +293,19 @@ priority: 1;
     // Conditionally include the "Tags" paragraph only if there are tags
     const tagsParagraph = tagLinks ? `${tagLinks}` : '';
 
+    // Conditionally include the archive link if the bookmark is archived.
+    const archiveLink = bookmark.archive
+      ? `<a href="${bookmark.archive}" target="_blank">📂</a>`
+      : '';
+
+    // Conditionally include the alternate URL link if it exists.
+    const altLink = bookmark.alturl
+      ? `<a href="${bookmark.alturl}" target="_blank">(alt)</a>`
+      : '';
+
     return `
       <li>
-        <a href="${bookmark.url}" target="_blank">${bookmark.title} (${bookmark.publicationYear})</a> (${tagsParagraph}) <br/>
+        <a href="${bookmark.url}" target="_blank">${bookmark.title} (${bookmark.publicationYear})</a> ${altLink} (${tagsParagraph}) ${archiveLink} <br/>
         ${descriptionParagraph}
       </li>
     `;

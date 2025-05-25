@@ -11,7 +11,8 @@ const bookmarks = [
     "title": "Advice on Job Hunting in Tech",
     "description": "A blog post by Josh Collinsworth sharing his thoughts and advice on job hunting in the tech industry.",
     "tags": ["job-hunting", "tech", "advice"],
-    "publicationYear": "2024"
+    "publicationYear": "2024",
+    "archive": "archive/For whatever it's worth_ my advice on job hunting in tech - Josh Collinsworth blog.html"
   },
   {
     "url": "https://supremecbd.uk/",
@@ -24,7 +25,8 @@ const bookmarks = [
     "title": "Brompton Torque Settings",
     "description": "A comprehensive guide to the torque settings for various components of a Brompton bicycle.",
     "tags": ["cycling", "brompton", "maintenance"],
-    "publicationYear": "2025"
+    "publicationYear": "2025",
+    "archive": "archive/Torque Settings - THEBROMPTONMAN.html"
   },
   {
     "url": "https://www.hockerty.uk/en-uk/",
@@ -51,7 +53,8 @@ const bookmarks = [
     "title": "Awesome AWS",
     "description": "A curated list of awesome Amazon Web Services (AWS) libraries, open source repos, guides, blogs, and other resources. Featuring the Fiery Meter of AWSome.",
     "tags": ["awesome", "aws", "tech"],
-    "publicationYear": "2025"
+    "publicationYear": "2025",
+    "archive": "archive/donnemartin_awesome-aws_ A curated list of awesome Amazon Web Services (AWS) libraries, open source repos, guides, blogs, and other resources. Featuring the Fiery Meter of AWSome.html"
   },
   {
     "url": "https://github.com/wmariuss/awesome-devops",
@@ -79,7 +82,8 @@ const bookmarks = [
     "title": "AWS Auth and Kubernetes Deep Dive",
     "description": "A deep dive into AWS authentication and Kubernetes.",
     "tags": ["tech", "aws", "kubernetes", "auth"],
-    "publicationYear": "2024"
+    "publicationYear": "2024",
+    "archive": "archive/A Hands-on Deep Dive into _br_AWS Auth and Kubernetes.html"
   },
   {
     "url": "https://earth.nullschool.net/",
@@ -101,6 +105,14 @@ const bookmarks = [
     "description": "A list of 198 methods of nonviolent action compiled by Gene Sharp. It includes various forms of protest, noncooperation, and intervention.",
     "tags": ["nonviolence", "protest", "activism"],
     "publicationYear": "2025"
+  },
+  {
+    "url": "https://github.com/ossu/computer-science",
+    "alturl": "https://cs.ossu.dev/",
+    "title": "OSSU Computer Science - Open Source Society University",
+    "description": "The OSSU curriculum is a complete education in computer science using online materials. It's not merely for career training or professional development. It's for those who want a proper, well-rounded grounding in concepts fundamental to all computing disciplines, and for those who have the discipline, will, and (most importantly!) good habits to obtain this education largely on their own, but with support from a worldwide community of fellow learners.",
+    "tags": ["courses", "education", "ossu"],
+    "publicationYear": "2025",
   },
  // {
  //   "url": "",
