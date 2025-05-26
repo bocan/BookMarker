@@ -1,4 +1,46 @@
 const bookmarks = [
+ // {
+ //   "url": "",
+ //   "title": "",
+ //   "description": "",
+ //   "tags": [""],
+ //   "publicationYear": ""
+ // },
+  {
+    "url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/",
+    "title": "Kubectl Quick Reference",
+    "description": "A quick reference guide for kubectl commands, providing a concise overview of the most commonly used commands and their options. This is a great resource for anyone working with Kubernetes.",
+    "tags": ["kubernetes", "tech"],
+    "publicationYear": "2025",
+  },
+  {
+    "url": "https://k8syaml.com/",
+    "title": "K8s YAML Generator",
+    "description": "A tool to generate Kubernetes YAML files for various resources like deployments, services, and more. It provides a user-friendly interface to create and customize Kubernetes configurations.",
+    "tags": ["kubernetes", "devops", "tech"],
+    "publicationYear": "2025"
+  },
+  {
+    "url": "https://www.cloudskillsboost.google/course_templates/593",
+    "title": "Google Cloud Skills Boost - AI and Machine Learning",
+    "description": "A collection of courses and resources on Google Cloud's AI and Machine Learning offerings. It includes hands-on labs, quests, and skill badges to help you learn and demonstrate your expertise in AI and ML on Google Cloud.",
+    "tags": ["google-cloud", "AI", "ML", "courses", "training", "tech"],
+    "publicationYear": "2025",
+  },
+  {
+    "url": "https://docs.docker.com/build/building/best-practices/",
+    "title": "Dockerfile Best Practices",
+    "description": "A guide to best practices for writing Dockerfiles, including tips on how to optimize your Docker images and improve build performance.",
+    "tags": ["docker", "best-practices", "tech"],
+    "publicationYear": "2025",
+  },
+  {
+    "url": "https://docs.docker.com/build/building/multi-platform/",
+    "title": "Building Multi-Platform Images",
+    "description": "A guide on how to build Docker images that can run on multiple platforms, including tips on using Buildx and QEMU.",
+    "tags": ["docker", "multi-platform", "buildx", "tech"],
+    "publicationYear": "2025",
+  },
   {
     "url": "https://chris.funderburg.me/",
     "title": "Chris Funderburg's Blog / Home Page",
@@ -72,8 +114,8 @@ const bookmarks = [
   },
   {
     "url": "https://techworld-with-nana.teachable.com/courses/enrolled/2186952",
-    "title": "TechWorld with Nana - Courses",
-    "description": "A collection of courses on DevOps and cloud computing.",
+    "title": "TechWorld with Nana - DevSecOps Bootcamp",
+    "description": "A comprehensive DevSecOps Bootcamp that covers the essential skills and tools needed for a career in DevSecOps. The course includes hands-on labs, quizzes, and a final project to help you apply what you've learned.",
     "tags": ["techworld", "courses", "devops", "training"],
     "publicationYear": "2025"
   },

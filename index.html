@@ -77,6 +77,36 @@ priority: 1;
         padding: 5px;
     }
 
+    .search-container {
+        margin-bottom: 15px; /* Adds some space below the search bar */
+        display: flex; /* Make it a flex container to align input and button */
+        gap: 10px; /* Space between input and button */
+    }
+
+    .search-container input[type="text"] {
+        flex-grow: 1; /* Allows the input to take up available space */
+        padding: 8px;
+        box-sizing: border-box;
+        border-radius: 5px;
+        border: 1px solid #333;
+        background-color: #222;
+        color: #FBFBFE;
+    }
+
+    .search-container button {
+        padding: 8px 15px;
+        border: none;
+        border-radius: 5px;
+        background-color: #5992F1; /* Your link blue color */
+        color: white;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    .search-container button:hover {
+        background-color: #4a7fd6; /* Slightly darker blue on hover */
+    }
+
 </style>
 <script src="metadata.js"></script>
 <script>
@@ -101,6 +131,24 @@ priority: 1;
       id: 'publicationYear',
       label: 'published in',
       filterFn: (bookmark, year) => bookmark.publicationYear === year,
+    },
+    {
+      id: 'search', // NEW: Search filter
+      label: 'search term',
+      filterFn: (bookmark, searchTerm) => {
+        // Convert search term to lowercase for case-insensitive search
+        const lowerCaseSearchTerm = searchTerm.toLowerCase();
+
+        // Check all relevant fields for the search term
+        return (
+          (bookmark.title && bookmark.title.toLowerCase().includes(lowerCaseSearchTerm)) ||
+          (bookmark.description && bookmark.description.toLowerCase().includes(lowerCaseSearchTerm)) ||
+          (bookmark.url && bookmark.url.toLowerCase().includes(lowerCaseSearchTerm)) ||
+          (bookmark.alturl && bookmark.alturl.toLowerCase().includes(lowerCaseSearchTerm)) ||
+          (bookmark.publicationYear && String(bookmark.publicationYear).toLowerCase().includes(lowerCaseSearchTerm)) ||
+          (bookmark.tags && bookmark.tags.some(tag => tag.toLowerCase().includes(lowerCaseSearchTerm)))
+        );
+      },
     },
   ];
 
@@ -426,12 +474,65 @@ priority: 1;
         });
     // --- END RENDER FILTER DROPDOWNS ---
   });
+
+// NEW: Function to handle search input
+function handleSearch() {
+  const searchInput = document.getElementById('searchInput');
+  const searchTerm = searchInput.value;
+  const params = new URLSearchParams(window.location.search);
+
+  if (searchTerm) {
+    params.set("search", searchTerm);
+  } else {
+    params.delete("search");
+  }
+  params.delete("pageNumber"); // Reset page when search term changes
+  window.location.search = params.toString();
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  const params = new URLSearchParams(window.location.search);
+
+  // Set the search input value from the URL parameter if it exists
+  const currentSearchTerm = params.get('search');
+  if (currentSearchTerm) {
+    document.getElementById('searchInput').value = currentSearchTerm;
+  }
+
+  const { matchingItems: matchingBookmarks, appliedFilters } =
+    filterItems({
+      items: bookmarks,
+      filters: bookmarkFilters, // This now includes the 'search' filter
+      params,
+    });
+
+  // ... (Rest of your existing DOMContentLoaded logic) ...
+
+  document.querySelector("#appliedFilters").innerHTML =
+    appliedFilters
+      .map(f => {
+        // Exclude the 'search term' from being explicitly listed under applied filters
+        if (f.type === 'search') {
+          return ''; // Don't display the search term as an applied filter
+        }
+        return `<li>${f.label}: ${f.value} <a href="${f.linkToRemove}">(remove)</a></li>`;
+      })
+      .join("");
+});
+
 </script>
 </head>
 
 <body>
 <div class="header">
 <h1><a href="file:///Users/chris/bookmarks/index.html">BookMarker</a></h1>
+
+  <div class="search-container">
+    <form id="searchForm" onsubmit="event.preventDefault(); handleSearch();">
+      <input type="text" id="searchInput" placeholder="Search all fields...">
+      <button type="submit">Search</button>
+    </form>
+  </div>
 
   <div class="header-controls">
     <p id="sortOrder">Sort by:</p> <div class="filter-group">
